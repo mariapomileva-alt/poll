@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pulse Vote — Simple Voting</title>
+    <link rel="stylesheet" href="voting-app.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app">
+        <header class="app-header">
+            <div class="brand">
+                <span class="brand-mark">●</span>
+                Pulse Vote
+            </div>
+            <nav class="header-actions">
+                <a class="ghost-link" id="adminLink" href="?admin=1">Admin</a>
+                <a class="ghost-link" href="./">Voting</a>
+            </nav>
+        </header>
+
+        <main class="app-content">
+            <section id="adminView" class="view hidden">
+                <div class="section-title">
+                    <h1>Poll admin</h1>
+                    <p>Create a question, add 3–5 options, and share the link.</p>
+                </div>
+
+                <div class="grid">
+                    <div class="card">
+                        <h2>New poll</h2>
+                        <form id="pollForm" class="form">
+                            <label class="field">
+                                <span>Question</span>
+                                <textarea id="questionInput" rows="3" placeholder="Example: Which meeting format works best for you?" required></textarea>
+                            </label>
+                            <div class="field">
+                                <span>Options (3–5)</span>
+                                <div id="optionsContainer" class="options-list"></div>
+                                <button type="button" id="addOptionBtn" class="btn btn-secondary">Add option</button>
+                            </div>
+                            <div id="pollFormMessage" class="form-message"></div>
+                            <button type="submit" class="btn btn-primary">Create poll</button>
+                        </form>
+                    </div>
+
+                    <div class="card">
+                        <h2>Current poll</h2>
+                        <div id="currentPollEmpty" class="empty-state">
+                            No active poll yet.
+                        </div>
+                        <div id="currentPollActive" class="hidden">
+                            <div class="poll-summary">
+                                <h3 id="currentQuestion"></h3>
+                                <p id="currentOptionsCount"></p>
+                            </div>
+                            <div class="share-row">
+                                <input id="shareLink" type="text" readonly>
+                                <button id="copyLinkBtn" class="btn btn-secondary">Copy</button>
+                            </div>
+                            <div class="results">
+                                <div class="results-header">
+                                    <h3>Results</h3>
+                                    <span id="totalVotes" class="pill">0 votes</span>
+                                </div>
+                                <div id="resultsChart" class="chart"></div>
+                                <div class="responses">
+                                    <h4>Who voted</h4>
+                                    <ul id="responsesList"></ul>
+                                </div>
+                            </div>
+                            <div class="actions-row">
+                                <button id="deletePollBtn" class="btn btn-danger">Finish and delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="voteView" class="view hidden">
+                <div class="vote-card">
+                    <div id="voteContent">
+                        <div class="poll-tag">Voting</div>
+                        <h1 id="voteQuestion">Loading question...</h1>
+                        <p id="voteSubtitle" class="subtitle">Pick one option and add your name or email.</p>
+                        <form id="voteForm" class="form">
+                        <div class="identity-toggle">
+                            <label><input type="radio" name="identityType" value="name" checked> Name</label>
+                            <label><input type="radio" name="identityType" value="email"> Email</label>
+                        </div>
+                        <input id="identityInput" type="text" placeholder="Your name" required>
+                        <div id="voteOptions" class="vote-options"></div>
+                        <div id="voteMessage" class="form-message"></div>
+                        <button type="submit" class="btn btn-primary">Vote</button>
+                        </form>
+                    </div>
+                    <div id="voteSuccess" class="success-message hidden">
+                        Thanks! Your opinion has been counted!
+                    </div>
+                    <div id="voteMissing" class="empty-state hidden">
+                        No active poll found. Go to admin to create a new one.
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="voting-app.js"></script>
+</body>
+</html>
