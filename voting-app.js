@@ -1,5 +1,5 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm";
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+import { SUPABASE_URL, SUPABASE_ANON_KEY, ADMIN_PASSWORD } from "./config.js";
 
 const adminView = document.getElementById("adminView");
 const voteView = document.getElementById("voteView");
@@ -9,6 +9,10 @@ const questionInput = document.getElementById("questionInput");
 const optionsContainer = document.getElementById("optionsContainer");
 const addOptionBtn = document.getElementById("addOptionBtn");
 const pollFormMessage = document.getElementById("pollFormMessage");
+const adminGate = document.getElementById("adminGate");
+const adminGateForm = document.getElementById("adminGateForm");
+const adminPasswordInput = document.getElementById("adminPasswordInput");
+const adminGateMessage = document.getElementById("adminGateMessage");
 
 const currentPollEmpty = document.getElementById("currentPollEmpty");
 const currentPollActive = document.getElementById("currentPollActive");
@@ -16,6 +20,7 @@ const currentQuestion = document.getElementById("currentQuestion");
 const currentOptionsCount = document.getElementById("currentOptionsCount");
 const shareLink = document.getElementById("shareLink");
 const copyLinkBtn = document.getElementById("copyLinkBtn");
+const qrCodeImage = document.getElementById("qrCodeImage");
 const resultsChart = document.getElementById("resultsChart");
 const responsesList = document.getElementById("responsesList");
 const totalVotes = document.getElementById("totalVotes");
@@ -31,6 +36,9 @@ const voteSuccess = document.getElementById("voteSuccess");
 const voteMissing = document.getElementById("voteMissing");
 const identityInput = document.getElementById("identityInput");
 const adminLink = document.getElementById("adminLink");
+const thankYouView = document.getElementById("thankYouView");
+const backToVoteBtn = document.getElementById("backToVoteBtn");
+const brandHome = document.getElementById("brandHome");
 
 const params = new URLSearchParams(window.location.search);
 const adminMode = params.has("admin") || !params.get("poll");
@@ -43,6 +51,7 @@ const initialOptionCount = 3;
 const maxOptionCount = 5;
 const POLL_SLUG_LENGTH = 7;
 const ADMIN_LAST_POLL_KEY = "votingApp.lastPollSlug";
+const ADMIN_AUTH_KEY = "votingApp.adminAuthed";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -84,10 +93,18 @@ const updateOptionButtons = () => {
 const showAdminView = () => {
     adminView.classList.remove("hidden");
     voteView.classList.add("hidden");
+    thankYouView.classList.add("hidden");
 };
 
 const showVoteView = () => {
     voteView.classList.remove("hidden");
+    adminView.classList.add("hidden");
+    thankYouView.classList.add("hidden");
+};
+
+const showThankYouView = () => {
+    thankYouView.classList.remove("hidden");
+    voteView.classList.add("hidden");
     adminView.classList.add("hidden");
 };
 
@@ -188,6 +205,10 @@ const renderCurrentPoll = async (slug) => {
     currentOptionsCount.textContent = `${poll.options.length} options`;
 
     shareLink.value = `${baseUrl}?poll=${poll.slug}`;
+    if (qrCodeImage) {
+        const encoded = encodeURIComponent(shareLink.value);
+        qrCodeImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encoded}`;
+    }
     const responses = await fetchResponses(poll.id);
     renderResults(poll, responses);
 };
@@ -252,6 +273,7 @@ const setupVoteView = async () => {
 
         voteSuccess.classList.remove("hidden");
         voteContent.classList.add("hidden");
+        showThankYouView();
     });
 };
 
@@ -314,6 +336,7 @@ const initAdminForm = () => {
 
         let slug = generateSlug();
         let poll = null;
+        let lastError = null;
 
         for (let attempt = 0; attempt < 5; attempt += 1) {
             const { data, error } = await supabase
@@ -326,18 +349,21 @@ const initAdminForm = () => {
                 poll = data;
                 break;
             }
+            lastError = error;
             slug = generateSlug();
         }
 
         if (!poll) {
-            pollFormMessage.textContent = "Could not create poll. Try again.";
+            const details = lastError?.message ? ` ${lastError.message}` : "";
+            pollFormMessage.textContent = `Could not create poll. Try again.${details}`;
             return;
         }
 
         const optionRows = options.map((label) => ({ poll_id: poll.id, label }));
         const { error: optionsError } = await supabase.from("options").insert(optionRows);
         if (optionsError) {
-            pollFormMessage.textContent = "Could not save options. Try again.";
+            const details = optionsError?.message ? ` ${optionsError.message}` : "";
+            pollFormMessage.textContent = `Could not save options. Try again.${details}`;
             return;
         }
 
@@ -389,8 +415,46 @@ const initAdminForm = () => {
     });
 };
 
+const unlockAdmin = () => {
+    localStorage.setItem(ADMIN_AUTH_KEY, "true");
+    adminGate.classList.add("hidden");
+    document.querySelector(".grid")?.classList.remove("hidden");
+};
+
+const setupAdminGate = () => {
+    const grid = document.querySelector(".grid");
+    const isAuthed = localStorage.getItem(ADMIN_AUTH_KEY) === "true";
+    if (isAuthed) {
+        adminGate.classList.add("hidden");
+        grid?.classList.remove("hidden");
+        return;
+    }
+
+    adminGate.classList.remove("hidden");
+    grid?.classList.add("hidden");
+
+    adminGateForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        adminGateMessage.textContent = "";
+
+        if (!ADMIN_PASSWORD || ADMIN_PASSWORD === "CHANGE_ME") {
+            adminGateMessage.textContent = "Set ADMIN_PASSWORD in config.js.";
+            return;
+        }
+
+        if (adminPasswordInput.value.trim() !== ADMIN_PASSWORD) {
+            adminGateMessage.textContent = "Wrong password.";
+            return;
+        }
+
+        adminPasswordInput.value = "";
+        unlockAdmin();
+    });
+};
+
 if (adminMode) {
     showAdminView();
+    setupAdminGate();
     initAdminForm();
     const initialSlug = getPollParam() || getLastPollSlug();
     renderCurrentPoll(initialSlug);
@@ -403,6 +467,29 @@ if (adminMode) {
     if (adminLink) {
         adminLink.classList.add("hidden");
     }
+    if (backToVoteBtn) {
+        backToVoteBtn.addEventListener("click", () => {
+            window.location.reload();
+        });
+    }
     setupIdentityToggle();
     setupVoteView();
+}
+
+if (brandHome && adminMode) {
+    brandHome.addEventListener("click", () => {
+        window.location.href = `${baseUrl}?admin=1`;
+    });
+}
+
+if (brandHome && !adminMode) {
+    brandHome.addEventListener("click", () => {
+        window.location.href = `${baseUrl}?admin=1`;
+    });
+    brandHome.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            window.location.href = `${baseUrl}?admin=1`;
+        }
+    });
 }
