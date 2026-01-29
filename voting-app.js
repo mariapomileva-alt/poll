@@ -1,5 +1,5 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm";
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+import { SUPABASE_URL, SUPABASE_ANON_KEY, OWNER_KEY } from "./config.js";
 
 const adminView = document.getElementById("adminView");
 const voteView = document.getElementById("voteView");
@@ -23,6 +23,10 @@ const responsesList = document.getElementById("responsesList");
 const totalVotes = document.getElementById("totalVotes");
 const downloadCsvBtn = document.getElementById("downloadCsvBtn");
 const deletePollBtn = document.getElementById("deletePollBtn");
+const ownerStats = document.getElementById("ownerStats");
+const statsPollsToday = document.getElementById("statsPollsToday");
+const statsResponsesToday = document.getElementById("statsResponsesToday");
+const statsQuestionsList = document.getElementById("statsQuestionsList");
 
 const voteQuestion = document.getElementById("voteQuestion");
 const voteSubtitle = document.getElementById("voteSubtitle");
@@ -117,6 +121,7 @@ const saveLastPollSlug = (slug) => {
 const getLastPollSlug = () => localStorage.getItem(ADMIN_LAST_POLL_KEY);
 
 const getPollParam = () => new URLSearchParams(window.location.search).get("poll");
+const getOwnerParam = () => new URLSearchParams(window.location.search).get("owner");
 
 const fetchPollBySlug = async (slug) => {
     const { data: poll, error } = await supabase
@@ -183,6 +188,54 @@ const renderResults = (poll, responses) => {
     });
 
     totalVotes.textContent = `${total} vote${total === 1 ? "" : "s"}`;
+};
+
+const renderOwnerStats = async () => {
+    if (!ownerStats || !OWNER_KEY || OWNER_KEY === "CHANGE_ME") {
+        return;
+    }
+    const ownerParam = getOwnerParam();
+    if (ownerParam !== OWNER_KEY) {
+        return;
+    }
+    ownerStats.classList.remove("hidden");
+
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const startIso = startOfDay.toISOString();
+
+    const [{ count: pollsToday }, { count: responsesToday }] = await Promise.all([
+        supabase
+            .from("polls")
+            .select("id", { count: "exact", head: true })
+            .gte("created_at", startIso),
+        supabase
+            .from("responses")
+            .select("id", { count: "exact", head: true })
+            .gte("created_at", startIso),
+    ]);
+
+    if (statsPollsToday) {
+        statsPollsToday.textContent = String(pollsToday ?? 0);
+    }
+    if (statsResponsesToday) {
+        statsResponsesToday.textContent = String(responsesToday ?? 0);
+    }
+
+    const { data: latestQuestions } = await supabase
+        .from("polls")
+        .select("question, created_at")
+        .order("created_at", { ascending: false })
+        .limit(8);
+
+    if (statsQuestionsList) {
+        statsQuestionsList.innerHTML = "";
+        (latestQuestions || []).forEach((item) => {
+            const li = document.createElement("li");
+            li.textContent = item.question;
+            statsQuestionsList.appendChild(li);
+        });
+    }
 };
 
 const downloadCsv = () => {
@@ -455,6 +508,7 @@ if (adminMode) {
     initAdminForm();
     const initialSlug = getPollParam() || getLastPollSlug();
     renderCurrentPoll(initialSlug);
+    renderOwnerStats();
     setInterval(() => {
         const activeSlug = getPollParam() || getLastPollSlug();
         renderCurrentPoll(activeSlug);
