@@ -300,6 +300,12 @@ input[type="email"] {
     align-items: center;
 }
 
+.results-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
 .pill {
     background: var(--accent-soft);
     color: var(--accent);
