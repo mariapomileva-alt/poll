@@ -44,7 +44,7 @@ const baseUrl = window.location.origin === "null"
     ? window.location.href.split("?")[0].split("#")[0]
     : `${window.location.origin}${window.location.pathname}`;
 
-const initialOptionCount = 3;
+const initialOptionCount = 2;
 const maxOptionCount = 5;
 const POLL_SLUG_LENGTH = 7;
 const ADMIN_LAST_POLL_KEY = "votingApp.lastPollSlug";
@@ -356,7 +356,7 @@ const initAdminForm = () => {
         }
 
         if (options.length < initialOptionCount || options.length > maxOptionCount) {
-            pollFormMessage.textContent = "Add 3 to 5 options.";
+            pollFormMessage.textContent = "Add 2 to 5 options.";
             return;
         }
 
