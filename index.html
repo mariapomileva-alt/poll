@@ -16,10 +16,7 @@
                 <span class="brand-mark">●</span>
                 Fast Vote
             </div>
-            <nav class="header-actions">
-                <a class="ghost-link" id="adminLink" href="?admin=1">Admin</a>
-                <a class="ghost-link" href="./">Voting</a>
-            </nav>
+            <nav class="header-actions"></nav>
         </header>
 
         <main class="app-content">
@@ -80,7 +77,10 @@
                             <div class="results">
                                 <div class="results-header">
                                     <h3>Results</h3>
-                                    <span id="totalVotes" class="pill">0 votes</span>
+                                    <div class="results-actions">
+                                        <button id="downloadCsvBtn" class="btn btn-secondary">Download CSV</button>
+                                        <span id="totalVotes" class="pill">0 votes</span>
+                                    </div>
                                 </div>
                                 <div id="resultsChart" class="chart"></div>
                                 <div class="responses">
