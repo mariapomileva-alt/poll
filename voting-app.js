@@ -25,6 +25,7 @@ const qrCodeFallback = document.getElementById("qrCodeFallback");
 const resultsChart = document.getElementById("resultsChart");
 const responsesList = document.getElementById("responsesList");
 const totalVotes = document.getElementById("totalVotes");
+const downloadCsvBtn = document.getElementById("downloadCsvBtn");
 const deletePollBtn = document.getElementById("deletePollBtn");
 
 const voteQuestion = document.getElementById("voteQuestion");
@@ -36,7 +37,6 @@ const voteMessage = document.getElementById("voteMessage");
 const voteSuccess = document.getElementById("voteSuccess");
 const voteMissing = document.getElementById("voteMissing");
 const identityInput = document.getElementById("identityInput");
-const adminLink = document.getElementById("adminLink");
 const thankYouView = document.getElementById("thankYouView");
 const backToVoteBtn = document.getElementById("backToVoteBtn");
 const brandHome = document.getElementById("brandHome");
@@ -55,6 +55,8 @@ const ADMIN_LAST_POLL_KEY = "votingApp.lastPollSlug";
 const ADMIN_AUTH_KEY = "votingApp.adminAuthed";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let latestPoll = null;
+let latestResponses = [];
 
 const createOptionRow = (value = "") => {
     const row = document.createElement("div");
@@ -151,6 +153,8 @@ const fetchResponses = async (pollId) => {
 };
 
 const renderResults = (poll, responses) => {
+    latestPoll = poll;
+    latestResponses = responses;
     const counts = poll.options.map((option) => ({
         ...option,
         count: responses.filter((response) => response.option_id === option.id).length,
@@ -184,6 +188,32 @@ const renderResults = (poll, responses) => {
     });
 
     totalVotes.textContent = `${total} vote${total === 1 ? "" : "s"}`;
+};
+
+const downloadCsv = () => {
+    if (!latestPoll) {
+        return;
+    }
+    const headers = ["name_or_email", "identity_type", "choice", "created_at"];
+    const rows = latestResponses.map((response) => {
+        const option = latestPoll.options.find((item) => item.id === response.option_id);
+        return [
+            response.identity,
+            response.identity_type,
+            option ? option.label : "",
+            response.created_at,
+        ];
+    });
+    const csvContent = [headers, ...rows]
+        .map((row) => row.map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`).join(","))
+        .join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `fast-vote-${latestPoll.slug}-responses.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
 };
 
 const renderCurrentPoll = async (slug) => {
@@ -471,11 +501,11 @@ if (adminMode) {
         const activeSlug = getPollParam() || getLastPollSlug();
         renderCurrentPoll(activeSlug);
     }, 4000);
+    if (downloadCsvBtn) {
+        downloadCsvBtn.addEventListener("click", downloadCsv);
+    }
 } else {
     showVoteView();
-    if (adminLink) {
-        adminLink.classList.add("hidden");
-    }
     if (backToVoteBtn) {
         backToVoteBtn.addEventListener("click", () => {
             window.location.reload();
