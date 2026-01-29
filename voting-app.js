@@ -1,5 +1,5 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm";
-import { SUPABASE_URL, SUPABASE_ANON_KEY, ADMIN_PASSWORD } from "./config.js";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
 
 const adminView = document.getElementById("adminView");
 const voteView = document.getElementById("voteView");
@@ -9,10 +9,6 @@ const questionInput = document.getElementById("questionInput");
 const optionsContainer = document.getElementById("optionsContainer");
 const addOptionBtn = document.getElementById("addOptionBtn");
 const pollFormMessage = document.getElementById("pollFormMessage");
-const adminGate = document.getElementById("adminGate");
-const adminGateForm = document.getElementById("adminGateForm");
-const adminPasswordInput = document.getElementById("adminPasswordInput");
-const adminGateMessage = document.getElementById("adminGateMessage");
 
 const currentPollEmpty = document.getElementById("currentPollEmpty");
 const currentPollActive = document.getElementById("currentPollActive");
@@ -52,7 +48,6 @@ const initialOptionCount = 3;
 const maxOptionCount = 5;
 const POLL_SLUG_LENGTH = 7;
 const ADMIN_LAST_POLL_KEY = "votingApp.lastPollSlug";
-const ADMIN_AUTH_KEY = "votingApp.adminAuthed";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let latestPoll = null;
@@ -454,46 +449,9 @@ const initAdminForm = () => {
     });
 };
 
-const unlockAdmin = () => {
-    localStorage.setItem(ADMIN_AUTH_KEY, "true");
-    adminGate.classList.add("hidden");
-    document.querySelector(".grid")?.classList.remove("hidden");
-};
-
-const setupAdminGate = () => {
-    const grid = document.querySelector(".grid");
-    const isAuthed = localStorage.getItem(ADMIN_AUTH_KEY) === "true";
-    if (isAuthed) {
-        adminGate.classList.add("hidden");
-        grid?.classList.remove("hidden");
-        return;
-    }
-
-    adminGate.classList.remove("hidden");
-    grid?.classList.add("hidden");
-
-    adminGateForm.addEventListener("submit", (event) => {
-        event.preventDefault();
-        adminGateMessage.textContent = "";
-
-        if (!ADMIN_PASSWORD || ADMIN_PASSWORD === "CHANGE_ME") {
-            adminGateMessage.textContent = "Set ADMIN_PASSWORD in config.js.";
-            return;
-        }
-
-        if (adminPasswordInput.value.trim() !== ADMIN_PASSWORD) {
-            adminGateMessage.textContent = "Wrong password.";
-            return;
-        }
-
-        adminPasswordInput.value = "";
-        unlockAdmin();
-    });
-};
 
 if (adminMode) {
     showAdminView();
-    setupAdminGate();
     initAdminForm();
     const initialSlug = getPollParam() || getLastPollSlug();
     renderCurrentPoll(initialSlug);
