@@ -21,6 +21,7 @@ const currentOptionsCount = document.getElementById("currentOptionsCount");
 const shareLink = document.getElementById("shareLink");
 const copyLinkBtn = document.getElementById("copyLinkBtn");
 const qrCodeImage = document.getElementById("qrCodeImage");
+const qrCodeFallback = document.getElementById("qrCodeFallback");
 const resultsChart = document.getElementById("resultsChart");
 const responsesList = document.getElementById("responsesList");
 const totalVotes = document.getElementById("totalVotes");
@@ -207,7 +208,15 @@ const renderCurrentPoll = async (slug) => {
     shareLink.value = `${baseUrl}?poll=${poll.slug}`;
     if (qrCodeImage) {
         const encoded = encodeURIComponent(shareLink.value);
-        qrCodeImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encoded}`;
+        qrCodeImage.onload = () => {
+            qrCodeImage.classList.remove("hidden");
+            qrCodeFallback?.classList.add("hidden");
+        };
+        qrCodeImage.onerror = () => {
+            qrCodeImage.classList.add("hidden");
+            qrCodeFallback?.classList.remove("hidden");
+        };
+        qrCodeImage.src = `https://quickchart.io/qr?text=${encoded}&size=180`;
     }
     const responses = await fetchResponses(poll.id);
     renderResults(poll, responses);
