@@ -118,6 +118,74 @@ body {
     border: 1px solid rgba(11, 45, 91, 0.05);
 }
 
+.stats-card {
+    margin-top: 28px;
+    background: var(--surface);
+    padding: 28px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(11, 45, 91, 0.05);
+}
+
+.stats-header h2 {
+    margin: 0 0 6px;
+}
+
+.stats-header p {
+    margin: 0;
+    color: var(--muted);
+}
+
+.stats-grid {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.stats-item {
+    background: rgba(11, 45, 91, 0.06);
+    padding: 16px;
+    border-radius: 14px;
+}
+
+.stats-label {
+    display: block;
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.stats-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--ink);
+}
+
+.stats-questions {
+    margin-top: 20px;
+}
+
+.stats-questions h3 {
+    margin: 0 0 10px;
+}
+
+.stats-questions ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.stats-questions li {
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(11, 45, 91, 0.05);
+}
+
 .card h2 {
     margin-top: 0;
     font-size: 24px;
