@@ -258,6 +258,30 @@ input[type="email"] {
     font-size: 14px;
 }
 
+.qr-block {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: rgba(11, 45, 91, 0.05);
+}
+
+.qr-label {
+    font-weight: 700;
+    color: var(--muted);
+}
+
+.qr-block img {
+    width: 96px;
+    height: 96px;
+    border-radius: 12px;
+    background: #ffffff;
+    border: 1px solid rgba(11, 45, 91, 0.08);
+    padding: 6px;
+}
+
 .results {
     margin-top: 22px;
     display: flex;
