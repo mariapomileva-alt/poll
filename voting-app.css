@@ -282,6 +282,11 @@ input[type="email"] {
     padding: 6px;
 }
 
+.qr-fallback {
+    font-size: 13px;
+    color: var(--muted);
+}
+
 .results {
     margin-top: 22px;
     display: flex;
